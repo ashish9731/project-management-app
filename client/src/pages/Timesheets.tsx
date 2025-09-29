@@ -3,14 +3,12 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Plus, Search, Calendar, Clock, User, Loader2, Download } from 'lucide-react'
-import { useAuthStore } from '@/store/authStore'
 import { timesheetsApi, tasksApi, projectsApi } from '@/services/api'
 import { Timesheet, Task, Project } from '@/types'
 import { formatDate, getStatusColor } from '@/lib/utils'
 import toast from 'react-hot-toast'
 
 const Timesheets = () => {
-  const { user } = useAuthStore()
   const [timesheets, setTimesheets] = useState<Timesheet[]>([])
   const [tasks, setTasks] = useState<Task[]>([])
   const [projects, setProjects] = useState<Project[]>([])
