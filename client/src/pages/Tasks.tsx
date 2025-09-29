@@ -3,15 +3,14 @@ import { Link } from 'react-router-dom'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
-import { Plus, Search, Calendar, User, Clock, Loader2, CheckCircle } from 'lucide-react'
-import { useAuthStore } from '@/store/authStore'
+import { Plus, Search, Filter, Calendar, User, Clock, Loader2 } from 'lucide-react'
+
 import { tasksApi, projectsApi } from '@/services/api'
 import { Task, Project } from '@/types'
 import { formatDate, getStatusColor, getPriorityColor } from '@/lib/utils'
 import toast from 'react-hot-toast'
 
 const Tasks = () => {
-  const { user } = useAuthStore()
   const [tasks, setTasks] = useState<Task[]>([])
   const [projects, setProjects] = useState<Project[]>([])
   const [isLoading, setIsLoading] = useState(true)
@@ -29,7 +28,7 @@ const Tasks = () => {
     try {
       setIsLoading(true)
       const params: any = { limit: 100 }
-      
+
       if (searchTerm) params.search = searchTerm
       if (statusFilter) params.status = statusFilter
       if (priorityFilter) params.priority = priorityFilter
@@ -51,6 +50,7 @@ const Tasks = () => {
       setProjects(response.data.projects || [])
     } catch (error) {
       console.error('Error fetching projects:', error)
+      toast.error('Failed to load projects for filter')
     }
   }
 
@@ -67,23 +67,12 @@ const Tasks = () => {
     }
   }
 
-  const handleStatusChange = async (taskId: string, newStatus: string) => {
-    try {
-      await tasksApi.updateTask(taskId, { status: newStatus })
-      toast.success('Task status updated')
-      fetchTasks()
-    } catch (error) {
-      console.error('Error updating task:', error)
-      toast.error('Failed to update task status')
-    }
-  }
-
   const filteredTasks = tasks.filter(task => {
-    const matchesSearch = task.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    const matchesSearch = task.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
                          task.description?.toLowerCase().includes(searchTerm.toLowerCase())
     const matchesStatus = !statusFilter || task.status === statusFilter
     const matchesPriority = !priorityFilter || task.priority === priorityFilter
-    const matchesProject = !projectFilter || task.projectId === projectFilter
+    const matchesProject = !projectFilter || task.project?.id === projectFilter
     
     return matchesSearch && matchesStatus && matchesPriority && matchesProject
   })
@@ -95,14 +84,12 @@ const Tasks = () => {
           <h1 className="text-3xl font-bold text-gray-900">Tasks</h1>
           <p className="text-gray-600">Manage your tasks and track progress</p>
         </div>
-        {(user?.role === 'admin' || user?.role === 'manager') && (
-          <Link to="/tasks/new">
-            <Button>
-              <Plus className="mr-2 h-4 w-4" />
-              New Task
-            </Button>
-          </Link>
-        )}
+        <Link to="/tasks/new">
+          <Button>
+            <Plus className="mr-2 h-4 w-4" />
+            New Task
+          </Button>
+        </Link>
       </div>
 
       {/* Filters */}
@@ -129,7 +116,6 @@ const Tasks = () => {
                 <option value="">All Status</option>
                 <option value="todo">To Do</option>
                 <option value="in-progress">In Progress</option>
-                <option value="review">Review</option>
                 <option value="done">Done</option>
               </select>
               <select
@@ -141,7 +127,6 @@ const Tasks = () => {
                 <option value="low">Low</option>
                 <option value="medium">Medium</option>
                 <option value="high">High</option>
-                <option value="urgent">Urgent</option>
               </select>
               <select
                 value={projectFilter}
@@ -150,9 +135,7 @@ const Tasks = () => {
               >
                 <option value="">All Projects</option>
                 {projects.map(project => (
-                  <option key={project.id} value={project.id}>
-                    {project.name}
-                  </option>
+                  <option key={project.id} value={project.id}>{project.name}</option>
                 ))}
               </select>
             </div>
@@ -160,10 +143,10 @@ const Tasks = () => {
         </CardContent>
       </Card>
 
-      {/* Tasks List */}
+      {/* Tasks Grid */}
       {isLoading ? (
-        <div className="space-y-4">
-          {[...Array(5)].map((_, i) => (
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {[...Array(6)].map((_, i) => (
             <Card key={i}>
               <CardContent className="p-6">
                 <div className="animate-pulse">
@@ -177,94 +160,80 @@ const Tasks = () => {
           ))}
         </div>
       ) : filteredTasks.length > 0 ? (
-        <div className="space-y-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {filteredTasks.map((task) => (
-            <Card key={task.id} className="hover:shadow-md transition-shadow">
-              <CardContent className="p-6">
+            <Card key={task.id} className="hover:shadow-lg transition-shadow">
+              <CardHeader className="pb-3">
                 <div className="flex items-start justify-between">
                   <div className="flex-1">
-                    <div className="flex items-start gap-3">
-                      <button
-                        onClick={() => handleStatusChange(task.id, task.status === 'done' ? 'todo' : 'done')}
-                        className="mt-1"
-                      >
-                        <CheckCircle 
-                          className={`h-5 w-5 ${
-                            task.status === 'done' 
-                              ? 'text-green-500' 
-                              : 'text-gray-300 hover:text-gray-400'
-                          }`} 
-                        />
-                      </button>
-                      <div className="flex-1">
-                        <h3 className="text-lg font-medium text-gray-900 mb-1">
-                          {task.title}
-                        </h3>
-                        {task.description && (
-                          <p className="text-gray-600 mb-3">{task.description}</p>
-                        )}
-                        
-                        <div className="flex items-center gap-4 text-sm text-gray-500">
-                          {task.project && (
-                            <div className="flex items-center gap-1">
-                              <div 
-                                className="w-3 h-3 rounded-full"
-                                style={{ backgroundColor: task.project.color }}
-                              ></div>
-                              <span>{task.project.name}</span>
-                            </div>
-                          )}
-                          {task.assignee && (
-                            <div className="flex items-center gap-1">
-                              <User className="h-4 w-4" />
-                              <span>{task.assignee.fullName}</span>
-                            </div>
-                          )}
-                          {task.dueDate && (
-                            <div className="flex items-center gap-1">
-                              <Calendar className="h-4 w-4" />
-                              <span>Due: {formatDate(task.dueDate)}</span>
-                            </div>
-                          )}
-                          {task.estimatedHours && (
-                            <div className="flex items-center gap-1">
-                              <Clock className="h-4 w-4" />
-                              <span>{task.estimatedHours}h estimated</span>
-                            </div>
-                          )}
-                        </div>
-                      </div>
-                    </div>
+                    <CardTitle className="text-lg">{task.name}</CardTitle>
+                    <CardDescription className="mt-1">
+                      {task.description || 'No description'}
+                    </CardDescription>
                   </div>
-                  
-                  <div className="flex items-center gap-3 ml-4">
-                    <div className="flex flex-col items-end gap-2">
+                  {task.project && (
+                    <div 
+                      className="w-4 h-4 rounded-full ml-2"
+                      style={{ backgroundColor: task.project.color }}
+                      title={task.project.name}
+                    ></div>
+                  )}
+                </div>
+              </CardHeader>
+              <CardContent className="pt-0">
+                <div className="space-y-3">
+                  {/* Status and Priority */}
+                  <div className="flex items-center gap-2">
+                    <span className={`px-2 py-1 text-xs rounded-full ${getStatusColor(task.status)}`}>
+                      {task.status.replace('-', ' ')}
+                    </span>
+                    <span className={`px-2 py-1 text-xs rounded-full ${getPriorityColor(task.priority)}`}>
+                      {task.priority}
+                    </span>
+                  </div>
+
+                  {/* Task Info */}
+                  <div className="space-y-2 text-sm text-gray-600">
+                    {task.dueDate && (
                       <div className="flex items-center gap-2">
-                        <span className={`px-2 py-1 text-xs rounded-full ${getStatusColor(task.status)}`}>
-                          {task.status.replace('-', ' ')}
-                        </span>
-                        <span className={`px-2 py-1 text-xs rounded-full ${getPriorityColor(task.priority)}`}>
-                          {task.priority}
-                        </span>
+                        <Calendar className="h-4 w-4" />
+                        <span>Due: {formatDate(task.dueDate)}</span>
                       </div>
-                      
-                      <div className="flex gap-2">
-                        <Link to={`/tasks/${task.id}`}>
-                          <Button variant="outline" size="sm">
-                            View
-                          </Button>
-                        </Link>
-                        {(user?.role === 'admin' || user?.role === 'manager') && (
-                          <Button
-                            variant="destructive"
-                            size="sm"
-                            onClick={() => handleDeleteTask(task.id)}
-                          >
-                            Delete
-                          </Button>
-                        )}
+                    )}
+                    {task.assignedTo && (
+                      <div className="flex items-center gap-2">
+                        <User className="h-4 w-4" />
+                        <span>Assignee: {task.assignedTo.fullName}</span>
                       </div>
-                    </div>
+                    )}
+                    {task.project && (
+                      <div className="flex items-center gap-2">
+                        <FolderOpen className="h-4 w-4" />
+                        <span>Project: {task.project.name}</span>
+                      </div>
+                    )}
+                    {task.estimatedHours && (
+                      <div className="flex items-center gap-2">
+                        <Clock className="h-4 w-4" />
+                        <span>Estimated: {task.estimatedHours} hours</span>
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Actions */}
+                  <div className="flex gap-2 pt-3">
+                    <Link to={`/tasks/${task.id}`} className="flex-1">
+                      <Button variant="outline" size="sm" className="w-full">
+                        View Details
+                      </Button>
+                    </Link>
+                    <Button
+                      variant="destructive"
+                      size="sm"
+                      onClick={() => handleDeleteTask(task.id)}
+                    >
+                      Delete
+                    </Button>
                   </div>
                 </div>
               </CardContent>
@@ -275,7 +244,7 @@ const Tasks = () => {
         <Card>
           <CardContent className="p-12 text-center">
             <div className="text-gray-500">
-              <div className="text-6xl mb-4">✅</div>
+              <div className="text-6xl mb-4">📝</div>
               <h3 className="text-lg font-medium text-gray-900 mb-2">No tasks found</h3>
               <p className="text-gray-500 mb-4">
                 {searchTerm || statusFilter || priorityFilter || projectFilter
@@ -283,14 +252,12 @@ const Tasks = () => {
                   : 'Get started by creating your first task'
                 }
               </p>
-              {(user?.role === 'admin' || user?.role === 'manager') && (
-                <Link to="/tasks/new">
-                  <Button>
-                    <Plus className="mr-2 h-4 w-4" />
-                    Create Task
-                  </Button>
-                </Link>
-              )}
+              <Link to="/tasks/new">
+                <Button>
+                  <Plus className="mr-2 h-4 w-4" />
+                  Create Task
+                </Button>
+              </Link>
             </div>
           </CardContent>
         </Card>
