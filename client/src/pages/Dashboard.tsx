@@ -11,7 +11,6 @@ import {
   Loader2
 } from 'lucide-react'
 import { Link } from 'react-router-dom'
-import { useAuthStore } from '@/store/authStore'
 import { projectsApi, tasksApi, timesheetsApi, usersApi } from '@/services/api'
 import toast from 'react-hot-toast'
 
@@ -41,7 +40,6 @@ interface RecentTask {
 }
 
 const Dashboard = () => {
-  const { user } = useAuthStore()
   const [stats, setStats] = useState<DashboardStats>({
     totalProjects: 0,
     activeProjects: 0,
@@ -79,18 +77,16 @@ const Dashboard = () => {
         
         // Fetch users (only if admin/manager)
         let usersData = { totalUsers: 0, activeUsers: 0 }
-        if (user?.role === 'admin' || user?.role === 'manager') {
-          try {
-            const usersResponse = await usersApi.getUsers({ limit: 100 })
-            const users = usersResponse.data.users || []
-            usersData = {
-              totalUsers: users.length,
-              activeUsers: users.filter(u => u.isActive).length
-            }
-          } catch (error) {
-            // Users API might not be accessible for all roles
-            console.log('Users data not accessible')
+        // Since authentication is removed, we'll fetch all users if needed for stats
+        try {
+          const usersResponse = await usersApi.getUsers({ limit: 100 })
+          const users = usersResponse.data.users || []
+          usersData = {
+            totalUsers: users.length,
+            activeUsers: users.filter(u => u.isActive).length
           }
+        } catch (error) {
+          console.log('Users data not accessible or no users endpoint')
         }
 
         // Calculate stats
@@ -134,7 +130,7 @@ const Dashboard = () => {
     }
 
     fetchDashboardData()
-  }, [user])
+  }, []) // Removed user from dependency array
 
   const statCards = [
     {
@@ -216,7 +212,7 @@ const Dashboard = () => {
         <div className="flex items-center justify-between">
           <div>
             <h1 className="text-3xl font-bold text-gray-900">Dashboard</h1>
-            <p className="text-gray-600">Welcome back, {user?.firstName}!</p>
+            <p className="text-gray-600">Welcome back!</p>
           </div>
         </div>
         
@@ -243,7 +239,7 @@ const Dashboard = () => {
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-3xl font-bold text-gray-900">Dashboard</h1>
-          <p className="text-gray-600">Welcome back, {user?.firstName}!</p>
+          <p className="text-gray-600">Welcome back!</p>
         </div>
         <div className="flex items-center space-x-2 text-sm text-gray-500">
           <Calendar className="h-4 w-4" />
