@@ -4,7 +4,6 @@ const helmet = require('helmet');
 const rateLimit = require('express-rate-limit');
 require('dotenv').config();
 
-const authRoutes = require('./routes/auth');
 const projectRoutes = require('./routes/projects');
 const taskRoutes = require('./routes/tasks');
 const timesheetRoutes = require('./routes/timesheets');
@@ -41,7 +40,6 @@ app.use(express.urlencoded({ extended: true }));
 app.use('/uploads', express.static('uploads'));
 
 // Routes
-app.use('/api/auth', authRoutes);
 app.use('/api/projects', projectRoutes);
 app.use('/api/tasks', taskRoutes);
 app.use('/api/timesheets', timesheetRoutes);
