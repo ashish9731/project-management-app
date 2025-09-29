@@ -129,23 +129,6 @@ const Login = () => {
                 )}
               </Button>
             </form>
-
-            <div className="mt-6">
-              <div className="relative">
-                <div className="absolute inset-0 flex items-center">
-                  <div className="w-full border-t border-gray-300" />
-                </div>
-                <div className="relative flex justify-center text-sm">
-                  <span className="px-2 bg-white text-gray-500">Demo accounts</span>
-                </div>
-              </div>
-
-              <div className="mt-4 space-y-2 text-sm text-gray-600">
-                <p><strong>Admin:</strong> admin@example.com / admin123</p>
-                <p><strong>Manager:</strong> manager@example.com / manager123</p>
-                <p><strong>Employee:</strong> employee@example.com / employee123</p>
-              </div>
-            </div>
           </CardContent>
         </Card>
       </div>
