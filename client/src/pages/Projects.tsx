@@ -4,14 +4,13 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Plus, Search, Filter, Calendar, User, Clock, Loader2 } from 'lucide-react'
-import { useAuthStore } from '@/store/authStore'
+
 import { projectsApi } from '@/services/api'
 import { Project } from '@/types'
 import { formatDate, getStatusColor, getPriorityColor } from '@/lib/utils'
 import toast from 'react-hot-toast'
 
 const Projects = () => {
-  const { user } = useAuthStore()
   const [projects, setProjects] = useState<Project[]>([])
   const [isLoading, setIsLoading] = useState(true)
   const [searchTerm, setSearchTerm] = useState('')
@@ -70,14 +69,12 @@ const Projects = () => {
           <h1 className="text-3xl font-bold text-gray-900">Projects</h1>
           <p className="text-gray-600">Manage your projects and track progress</p>
         </div>
-        {(user?.role === 'admin' || user?.role === 'manager') && (
-          <Link to="/projects/new">
-            <Button>
-              <Plus className="mr-2 h-4 w-4" />
-              New Project
-            </Button>
-          </Link>
-        )}
+        <Link to="/projects/new">
+          <Button>
+            <Plus className="mr-2 h-4 w-4" />
+            New Project
+          </Button>
+        </Link>
       </div>
 
       {/* Filters */}
@@ -224,15 +221,13 @@ const Projects = () => {
                         View Details
                       </Button>
                     </Link>
-                    {(user?.role === 'admin' || user?.role === 'manager') && (
-                      <Button
-                        variant="destructive"
-                        size="sm"
-                        onClick={() => handleDeleteProject(project.id)}
-                      >
-                        Delete
-                      </Button>
-                    )}
+                    <Button
+                      variant="destructive"
+                      size="sm"
+                      onClick={() => handleDeleteProject(project.id)}
+                    >
+                      Delete
+                    </Button>
                   </div>
                 </div>
               </CardContent>
@@ -251,14 +246,12 @@ const Projects = () => {
                   : 'Get started by creating your first project'
                 }
               </p>
-              {(user?.role === 'admin' || user?.role === 'manager') && (
-                <Link to="/projects/new">
-                  <Button>
-                    <Plus className="mr-2 h-4 w-4" />
-                    Create Project
-                  </Button>
-                </Link>
-              )}
+              <Link to="/projects/new">
+                <Button>
+                  <Plus className="mr-2 h-4 w-4" />
+                  Create Project
+                </Button>
+              </Link>
             </div>
           </CardContent>
         </Card>
