@@ -10,11 +10,9 @@ import {
   Settings,
   LogOut
 } from 'lucide-react'
-import { useAuthStore } from '@/store/authStore'
 
 const Sidebar = () => {
   const location = useLocation()
-  const { user, logout } = useAuthStore()
 
   const navigation = [
     { name: 'Dashboard', href: '/dashboard', icon: LayoutDashboard },
@@ -22,15 +20,8 @@ const Sidebar = () => {
     { name: 'Tasks', href: '/tasks', icon: CheckSquare },
     { name: 'Timesheets', href: '/timesheets', icon: Clock },
     { name: 'Reports', href: '/reports', icon: BarChart3 },
-    ...(user?.role === 'admin' || user?.role === 'manager' 
-      ? [{ name: 'Users', href: '/users', icon: Users }] 
-      : []
-    ),
+    { name: 'Users', href: '/users', icon: Users }
   ]
-
-  const handleLogout = () => {
-    logout()
-  }
 
   return (
     <div className="hidden md:flex md:w-64 md:flex-col">
@@ -80,22 +71,14 @@ const Sidebar = () => {
           <div className="flex items-center">
             <div className="flex-shrink-0">
               <div className="w-8 h-8 bg-gray-300 rounded-full flex items-center justify-center">
-                <span className="text-gray-600 font-medium text-sm">
-                  {user?.firstName?.charAt(0)}{user?.lastName?.charAt(0)}
-                </span>
+                <span className="text-gray-600 font-medium text-sm">PM</span>
               </div>
             </div>
             <div className="ml-3">
-              <p className="text-sm font-medium text-gray-700">{user?.fullName}</p>
-              <p className="text-xs text-gray-500 capitalize">{user?.role}</p>
+              <p className="text-sm font-medium text-gray-700">Project Manager</p>
+              <p className="text-xs text-gray-500 capitalize">Admin</p>
             </div>
           </div>
-          <button
-            onClick={handleLogout}
-            className="ml-auto flex-shrink-0 p-1 text-gray-400 hover:text-gray-500"
-          >
-            <LogOut className="h-5 w-5" />
-          </button>
         </div>
       </div>
     </div>
